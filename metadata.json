@@ -1,0 +1,7 @@
+{
+  "name": "Dr.AI - Intelligent Clinical Assistant",
+  "description": "AI-powered clinical assistant that transcribes patient-doctor consultations and automatically generates structured SOAP notes using Google Gemini.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
