@@ -37,3 +37,5 @@ export enum AppState {
   REVIEW = 'REVIEW',
   ERROR = 'ERROR'
 }
+
+export type OutputLanguage = 'zh-TW' | 'en';

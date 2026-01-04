@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { generateConsultationData } from './services/geminiService';
-import { ConsultationData, AppState } from './types';
+import { ConsultationData, AppState, OutputLanguage } from './types';
 import RecordButton from './components/RecordButton';
 import TranscriptView from './components/TranscriptView';
 import SoapView from './components/SoapView';
@@ -10,6 +10,7 @@ const App: React.FC = () => {
   const [data, setData] = useState<ConsultationData | null>(null);
   const [timer, setTimer] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [language, setLanguage] = useState<OutputLanguage>('zh-TW');
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -65,7 +66,8 @@ const App: React.FC = () => {
   const handleProcessing = async () => {
     try {
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-      const result = await generateConsultationData(audioBlob);
+      // Pass the selected language to the service
+      const result = await generateConsultationData(audioBlob, language);
       setData(result);
       setAppState(AppState.REVIEW);
     } catch (err: any) {
@@ -115,7 +117,37 @@ const App: React.FC = () => {
         {(appState === AppState.IDLE || appState === AppState.RECORDING) && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm z-10">
              <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border border-gray-100 flex flex-col items-center">
-               <h2 className="text-2xl font-bold text-gray-800 mb-2">New Consultation</h2>
+               <h2 className="text-2xl font-bold text-gray-800 mb-6">New Consultation</h2>
+               
+               {/* Language Selector */}
+               <div className="mb-8 w-full">
+                 <p className="text-xs text-gray-500 uppercase font-semibold text-center mb-2">SOAP Note Output Language</p>
+                 <div className="flex bg-slate-100 p-1 rounded-lg">
+                    <button
+                      onClick={() => !((appState === AppState.RECORDING)) && setLanguage('zh-TW')}
+                      disabled={appState === AppState.RECORDING}
+                      className={`flex-1 flex items-center justify-center py-2 text-sm font-medium rounded-md transition-all ${
+                        language === 'zh-TW' 
+                          ? 'bg-white text-medical-600 shadow-sm ring-1 ring-gray-200' 
+                          : 'text-gray-500 hover:text-gray-700'
+                      } ${appState === AppState.RECORDING ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      繁體中文
+                    </button>
+                    <button
+                      onClick={() => !((appState === AppState.RECORDING)) && setLanguage('en')}
+                      disabled={appState === AppState.RECORDING}
+                      className={`flex-1 flex items-center justify-center py-2 text-sm font-medium rounded-md transition-all ${
+                        language === 'en' 
+                          ? 'bg-white text-medical-600 shadow-sm ring-1 ring-gray-200' 
+                          : 'text-gray-500 hover:text-gray-700'
+                      } ${appState === AppState.RECORDING ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      English
+                    </button>
+                 </div>
+               </div>
+
                <p className="text-gray-500 mb-8 text-center">Press the button below to start recording the doctor-patient conversation.</p>
                
                <RecordButton 
@@ -139,7 +171,7 @@ const App: React.FC = () => {
              <div className="flex flex-col items-center">
                <div className="w-16 h-16 border-4 border-medical-200 border-t-medical-600 rounded-full animate-spin mb-4"></div>
                <h3 className="text-xl font-semibold text-gray-800">Analyzing Consultation...</h3>
-               <p className="text-gray-500 mt-2">Transcribing audio and generating SOAP note</p>
+               <p className="text-gray-500 mt-2">Transcribing audio and generating SOAP note ({language === 'zh-TW' ? 'Chinese' : 'English'})</p>
              </div>
            </div>
         )}

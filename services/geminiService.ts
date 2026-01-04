@@ -1,6 +1,6 @@
 import { GoogleGenAI, Schema, Type } from "@google/genai";
-import { ConsultationData } from "../types";
-import { SYSTEM_INSTRUCTION } from "../constants";
+import { ConsultationData, OutputLanguage } from "../types";
+import { getSystemInstruction } from "../constants";
 
 // Using gemini-2.0-flash-exp as it currently supports the best audio-to-text + reasoning capabilities on AI Studio.
 // If strictly limited by the prompt's model list for "Text Tasks", we would use 'gemini-3-flash-preview', 
@@ -55,7 +55,7 @@ const responseSchema: Schema = {
   required: ["transcript", "soap"]
 };
 
-export const generateConsultationData = async (audioBlob: Blob): Promise<ConsultationData> => {
+export const generateConsultationData = async (audioBlob: Blob, language: OutputLanguage): Promise<ConsultationData> => {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
     throw new Error("API Key is missing. Please ensure process.env.API_KEY is set.");
@@ -83,7 +83,7 @@ export const generateConsultationData = async (audioBlob: Blob): Promise<Consult
         ]
       },
       config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
+        systemInstruction: getSystemInstruction(language),
         responseMimeType: "application/json",
         responseSchema: responseSchema,
         temperature: 0.2, // Low temperature for factual accuracy
